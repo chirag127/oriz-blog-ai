@@ -11,7 +11,7 @@ import '~/styles/oriz-ui-overrides.css'
 import 'katex/dist/katex.min.css'
 import '~/styles/tokens.css'
 import { ClientRouter } from 'astro:transitions'
-import AppSidebarContent from '~/components/AppSidebarContent.astro'
+import CellIndexRail from '~/components/CellIndexRail.astro'
 import BottomBar from '~/components/chrome/BottomBar.astro'
 import ConsentBanner from '~/components/chrome/ConsentBanner.astro'
 import FamilyChrome from '~/components/chrome/FamilyChrome.astro'
@@ -142,9 +142,11 @@ const visibleBottomBarActions = hideSidebar
     <FamilyChrome slug="oriz-pages-ai-blog-app" title="latent" accent="var(--accent)" />
     <a href="#main" class="skip-link">Skip to content</a>
     <Header />
-    <div class="layout-body">
-      {!hideSidebar && <Sidebar><AppSidebarContent /></Sidebar>}
-      <main id="main"><slot /></main>
+    <div class="notebook">
+      {!hideSidebar && (
+        <Sidebar width="272px"><CellIndexRail /></Sidebar>
+      )}
+      <main id="main" class="nb-main"><slot /></main>
     </div>
     <Footer />
     <BottomBar actions={visibleBottomBarActions} />
@@ -161,9 +163,29 @@ const visibleBottomBarActions = hideSidebar
 </html>
 
 <style>
-  .layout-body { display: flex; gap: 0; align-items: flex-start; }
-  .layout-body > main { flex: 1 1 auto; min-width: 0; }
+  /* NOTEBOOK / TWO-PANE shell — left cell-index rail + right content column,
+     centered inside the page measure with a vertical cell-gutter rule. */
+  .notebook {
+    max-width: var(--container-page, 1100px);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 272px minmax(0, 1fr);
+    align-items: start;
+  }
+  .notebook > :global(.site-sidebar) {
+    background: transparent;
+    border-right: 1px solid var(--rule);
+    padding: 1.5rem 1.25rem 1.5rem clamp(0.75rem, 3vw, 1.5rem);
+  }
+  .nb-main {
+    min-width: 0;
+    padding-inline: clamp(1.25rem, 3.5vw, 2.5rem);
+    padding-block: 0 2rem;
+  }
+  /* single-column below the tablet breakpoint: rail becomes the mobile drawer
+     (Sidebar.astro handles the fixed off-canvas + focus trap), content stacks. */
   @media (max-width: 767px) {
-    .layout-body { display: block; }
+    .notebook { display: block; }
+    .nb-main { padding-inline: clamp(1rem, 5vw, 1.5rem); }
   }
 </style>
