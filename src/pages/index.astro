@@ -1,4 +1,5 @@
 ---
+import DecoderStrip from '~/components/DecoderStrip.astro'
 import SeriesSpine from '~/components/SeriesSpine.astro'
 /**
  * /  — latent homepage, NOTEBOOK / TWO-PANE archetype.
@@ -115,6 +116,18 @@ const jsonLd = {
           worked, what broke, and the numbers behind both. Every post below is a
           cell, executed in order, newest at the top.
         </p>
+        <div class="thesis-decoder">
+          <DecoderStrip
+            label="decoder · argmax over next token"
+            candidates={[
+              { token: 'production', prob: 0.71 },
+              { token: 'inference',  prob: 0.14 },
+              { token: 'scale',      prob: 0.09 },
+              { token: 'staging',    prob: 0.04 },
+              { token: 'benchmark',  prob: 0.02 },
+            ]}
+          />
+        </div>
         <p class="thesis-run mono">
           <span class="tr-key">runtime</span>
           <span class="tr-val">{total} cells</span>
@@ -252,6 +265,13 @@ const jsonLd = {
     font-size: clamp(1.0625rem, 2vw, 1.25rem);
     line-height: 1.5; color: var(--ink-mute);
     margin: 1.25rem 0 0; max-width: 54ch;
+  }
+  .thesis-decoder {
+    margin-top: 1.5rem;
+    max-width: 280px;
+    padding: 0.75rem;
+    border: 1px solid var(--grid);
+    background: color-mix(in oklab, var(--paper-2) 60%, transparent);
   }
   .thesis-run {
     display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline;

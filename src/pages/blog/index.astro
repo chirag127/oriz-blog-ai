@@ -16,6 +16,7 @@ const allPosts = await getPublishedPosts()
 const categories = await getAllCategories()
 const totalPages = Math.max(1, Math.ceil(allPosts.length / PAGE_SIZE))
 const posts = allPosts.slice(0, PAGE_SIZE)
+const total = allPosts.length
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -38,10 +39,10 @@ const jsonLd = {
 >
   <div class="container-page section">
     <header class="blog-head">
-      <p class="blog-kicker mono">The desk</p>
-      <h1>Blog</h1>
+      <p class="blog-kicker mono">dispatch · all cells</p>
+      <h1>Cells</h1>
       <p class="blog-lede">
-        Writing on software, AI agents, finance tooling, and the tools I build.
+        Every post is an executed cell — RAG pipelines, agent architectures, eval harnesses, and the numbers that prove them out.
       </p>
     </header>
 
@@ -58,9 +59,9 @@ const jsonLd = {
       <p class="muted">No posts yet — the first one drops shortly.</p>
     ) : (
       <ul class="post-list">
-        {posts.map((p) => (
+        {posts.map((p, i) => (
           <li>
-            <PostCard post={p} />
+            <PostCard post={p} execIndex={total - i} />
           </li>
         ))}
       </ul>

@@ -1,20 +1,18 @@
 ---
 /**
- * PostCard — editorial listing entry ("Signal Press"). One hairline-ruled
- * row (no rounded card, no shadow, no radius): a vertical-coloured kicker
- * rule + desk label, a serif headline, a one-line dek, and a mono meta foot
- * (date · reading time). Used by every listing (index, tag, category,
- * related). The whole entry is one link; the desk kicker deep-links to the
- * category.
+ * PostCard — AI notebook executed-cell card.
+ * Layout: narrow [n] gutter + body column, hairline ruled.
+ * Optional execIndex renders as a cell execution counter gutter.
  */
 import type { CollectionEntry } from 'astro:content'
 import { formatPostDate, postVertical, slugifyTag, verticalLabel } from '~/lib/blog'
 
 export interface Props {
   post: CollectionEntry<'blog'>
+  execIndex?: number
 }
 
-const { post } = Astro.props
+const { post, execIndex } = Astro.props
 const { title, description, pubDate, category, readingTime } = post.data
 const href = `/blog/${post.id}`
 const catHref = `/categories/${slugifyTag(category)}/`
@@ -22,7 +20,10 @@ const vert = postVertical(post)
 ---
 
 <article class="post-card" data-vertical={vert}>
-  <a class="post-card-link" href={href}>
+  {execIndex !== undefined && (
+    <span class="pc-gutter mono" aria-hidden="true">In[<span class="pc-n">{execIndex}</span>]</span>
+  )}
+  <a class="post-card-link" href={href} class:list={{ 'has-gutter': execIndex !== undefined }}>
     <span class="post-card-kicker">
       <span class="post-card-tick" aria-hidden="true"></span>
       <span class="post-card-desk">{verticalLabel(vert)}</span>
@@ -43,11 +44,29 @@ const vert = postVertical(post)
     position: relative;
     border-top: 1px solid var(--rule);
     --v: var(--v-personal);
+    display: grid;
+    grid-template-columns: 0 minmax(0, 1fr);
+  }
+  .post-card:has(.pc-gutter) {
+    grid-template-columns: 4em minmax(0, 1fr);
   }
   .post-card[data-vertical='dev'] { --v: var(--v-dev); }
   .post-card[data-vertical='finance'] { --v: var(--v-finance); }
   .post-card[data-vertical='culture'] { --v: var(--v-culture); }
   .post-card[data-vertical='health'] { --v: var(--v-health); }
+
+  /* cell-gutter [n] */
+  .pc-gutter {
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: -0.02em;
+    text-align: right;
+    padding-top: 1.375rem;
+    white-space: nowrap;
+    user-select: none;
+    padding-right: 0.5rem;
+  }
+  .pc-n { color: var(--v); }
 
   .post-card-link {
     display: grid;
