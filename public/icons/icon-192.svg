@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <title>latent</title>
+  <rect width="192" height="192" rx="24" fill="#f4f7f4"/>
+  <g stroke="#dbe4dc" stroke-width="4">
+    <path d="M0 64h192M0 128h192M64 0v192M128 0v192"/>
+  </g>
+  <g fill="none" stroke="#0b6b5a" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M66 50v92M54 50h12M54 142h12"/>
+    <path d="M126 50v92M126 50h12M126 142h12"/>
+  </g>
+  <circle cx="96" cy="96" r="15" fill="#d1470e"/>
+</svg>

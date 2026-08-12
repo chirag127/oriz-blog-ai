@@ -1,0 +1,67 @@
+---
+title: "RAG pipelines that actually work in production"
+description: "Most RAG demos fall apart on real corpora. Here is the retrieval stack that survives messy documents, ambiguous queries, and users who paste in nonsense."
+pubDate: "2026-08-05"
+updatedDate: "2026-08-11"
+tags: ["RAG", "Retrieval", "Embeddings", "Vector Search", "Reranking"]
+category: "Retrieval"
+author: "Chirag Singhal"
+featured: true
+draft: false
+---
+
+The demo version of retrieval-augmented generation is three lines: embed the docs, embed the query, stuff the top-k chunks into the prompt. It works beautifully on the ten clean paragraphs you tested with. Then you point it at a real corpus — 40,000 support tickets, PDFs with tables, half of them near-duplicates — and the answers turn to mush.
+
+The gap between the demo and the deployment is almost never the language model. It is retrieval. Here is the stack I keep coming back to.
+
+## Chunking is a data-modeling problem, not a `split()` call
+
+Fixed 500-token windows are the default because they are easy, not because they are good. A window that slices through the middle of a table, or splits a definition from the sentence that qualifies it, retrieves confidently and answers wrong.
+
+Chunk on structure first. Markdown headings, HTML sections, function boundaries in code — the document already tells you where its seams are. Fall back to token windows only inside a section that is genuinely too long. Keep a small overlap (10-15%) so a fact that lands on a boundary still appears whole in one chunk.
+
+Attach metadata at chunk time: source document, section path, last-updated date, and any access-control tags. You will need all of it later for filtering and for citations, and you cannot reconstruct it after the fact.
+
+## One embedding model is not enough
+
+Dense vectors are great at "these mean the same thing" and bad at "these share this exact rare token." A query for error code `TS2345` will happily retrieve chunks about *other* error codes, because they all embed to roughly the same neighborhood.
+
+Run dense and sparse retrieval together. Keep your vector search, add a BM25 or SPLADE lexical index, and fuse the two result lists. Reciprocal rank fusion is a good default and needs no tuning:
+
+```python
+def rrf(dense_hits, sparse_hits, k=60):
+    scores = {}
+    for rank, doc_id in enumerate(dense_hits):
+        scores[doc_id] = scores.get(doc_id, 0) + 1 / (k + rank)
+    for rank, doc_id in enumerate(sparse_hits):
+        scores[doc_id] = scores.get(doc_id, 0) + 1 / (k + rank)
+    return sorted(scores, key=scores.get, reverse=True)
+```
+
+The lexical leg catches exact identifiers, product names, and acronyms that the dense model rounds off. The dense leg catches paraphrases the lexical leg misses. Together they cover each other's failure modes.
+
+## Retrieve wide, then rerank narrow
+
+Cosine similarity over a whole corpus is a coarse instrument. It gets you into the right neighborhood, not to the right door. So retrieve generously — top 50, not top 5 — then pass those candidates through a cross-encoder reranker that scores each (query, chunk) pair directly.
+
+Cross-encoders are too slow to run over the whole corpus, which is exactly why the first-stage retriever exists: to shrink 40,000 candidates down to 50 the reranker can afford to read carefully. This two-stage shape — cheap recall, expensive precision — is the single biggest quality lever in the whole pipeline, and it is the step most demos skip.
+
+## The query is not the question
+
+Users type fragments, follow-ups, and typos. "what about the refund one" is meaningless to a retriever with no memory of the previous turn. Before you retrieve, rewrite the raw input into a standalone query using the conversation history. It is one cheap language-model call and it fixes a whole category of "the search returned nothing" bugs.
+
+For broad questions, generate two or three query variants and retrieve for each — different phrasings surface different chunks. Deduplicate before reranking.
+
+## Give the model an exit
+
+The failure mode that erodes trust fastest is a confident answer built from irrelevant context. If the reranker's top score is below a threshold, do not answer from the corpus. Say you do not have it. A system that admits ignorance ten percent of the time is worth more than one that fabricates ten percent of the time, because users learn which one they can rely on.
+
+## What I actually ship
+
+- **Structure-aware chunking** with metadata, overlap only where a section is long.
+- **Hybrid retrieval** (dense + BM25) fused with RRF, top 50.
+- **Cross-encoder rerank** down to the 5-8 chunks that fit the context budget.
+- **Query rewriting** against conversation history before every retrieval.
+- **A confidence floor** that lets the system decline.
+
+None of it is exotic. It is retrieval engineering, done deliberately, measured at each stage. Instrument recall@50 and rerank precision separately so that when quality drops you know which stage to fix — because it will drop, and "the RAG is broken" is not a diagnosis.

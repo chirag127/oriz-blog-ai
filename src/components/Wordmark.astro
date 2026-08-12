@@ -1,0 +1,113 @@
+---
+/*
+ * Wordmark — "latent" set in Fraunces (display serif), with the trailing
+ * bracketed dimension index `[·]` rendered in mono — a latent-space coordinate
+ * / tensor-slice notation (`latent[·]`). It reads as "a point in latent space",
+ * where meaning lives as coordinates. The bracket is this site's brand anchor.
+ *
+ * Distinct from the sister oriz sites: each site owns its type + mark. Here the
+ * mark is a serif wordmark plus a mono coordinate bracket in the teal signal.
+ */
+
+interface Props {
+  /** Sub-section name — rendered after a `/` separator. */
+  subtitle?: string
+  /** Display size in CSS pixels. */
+  size?: number
+  /** Wrap the mark in an <a href="/"> — defaults to '/' when subtitle is set. */
+  href?: string | null
+  /** Render as <h1> (the masthead) rather than <div>. */
+  asHeading?: boolean
+}
+
+const { subtitle, size = 96, href = null, asHeading = false } = Astro.props
+const Tag = asHeading ? 'h1' : ('div' as const)
+---
+
+{
+  href ? (
+    <a class="wordmark-link" href={href} aria-label={subtitle ? `latent / ${subtitle}` : 'latent'}>
+      <Tag class="wordmark" style={`--wm-size: ${size}px;`}>
+        <span class="wordmark-mark">
+          <span class="wordmark-word">latent</span>
+          <span class="wordmark-index" aria-hidden="true">[·]</span>
+        </span>
+        {subtitle && (
+          <>
+            <span class="wordmark-sep" aria-hidden="true">
+              /
+            </span>
+            <span class="wordmark-sub">{subtitle}</span>
+          </>
+        )}
+      </Tag>
+    </a>
+  ) : (
+    <Tag class="wordmark" style={`--wm-size: ${size}px;`}>
+      <span class="wordmark-mark">
+        <span class="wordmark-word">latent</span>
+        <span class="wordmark-index" aria-hidden="true">[·]</span>
+      </span>
+      {subtitle && (
+        <>
+          <span class="wordmark-sep" aria-hidden="true">
+            /
+          </span>
+          <span class="wordmark-sub">{subtitle}</span>
+        </>
+      )}
+    </Tag>
+  )
+}
+
+<style>
+  .wordmark-link {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .wordmark {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.18em;
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 560;
+    font-size: var(--wm-size, 96px);
+    line-height: 1;
+    letter-spacing: -0.028em;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 1;
+  }
+  .wordmark-mark {
+    display: inline-flex;
+    align-items: baseline;
+  }
+  .wordmark-word {
+    display: inline-block;
+  }
+  .wordmark-index {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.42em;
+    letter-spacing: 0;
+    color: var(--accent);
+    margin-left: 0.06em;
+    transform: translateY(-0.7em);
+    display: inline-block;
+  }
+  .wordmark-sep {
+    margin-inline: 0.2em;
+    color: var(--ink-mute);
+    font-weight: 400;
+  }
+  .wordmark-sub {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.42em;
+    letter-spacing: 0.02em;
+    transform: translateY(-0.2em);
+    display: inline-block;
+  }
+</style>

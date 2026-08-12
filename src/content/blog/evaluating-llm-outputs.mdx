@@ -1,0 +1,51 @@
+---
+title: "Evaluating LLM outputs without fooling yourself"
+description: "Vibes are not a metric. A practical framework for measuring whether your LLM feature is good — grounded in test sets, rubrics, and the honest limits of LLM-as-judge."
+pubDate: "2026-08-11"
+tags: ["Evals", "LLM-as-Judge", "Metrics", "Testing", "Benchmarks"]
+category: "Evals"
+author: "Chirag Singhal"
+draft: false
+---
+
+Here is the trap. You ship an LLM feature, try a few prompts, and it looks great. You tweak the prompt, try the same few prompts, and it still looks great. You have no idea whether your change helped, hurt, or did nothing — because "looks great on the three examples I happened to try" is not measurement. It is a vibe, and vibes drift with your mood.
+
+Evaluation is the difference between an LLM feature you can improve and one you can only fiddle with. It is also the part everyone skips, because it is less fun than prompting. Do it anyway.
+
+## Start with a test set, not a metric
+
+Before you argue about how to score, collect what to score. Pull 50-100 real inputs — from logs if you have them, hand-written if you do not — and cover the distribution: the common cases, the edge cases, the adversarial garbage users actually type. This set is your ground. Every prompt change gets run against all of it, not against whatever example is fresh in your head.
+
+Freeze it. Version it. Do not quietly add examples that your current system happens to pass — that is how a test set stops measuring anything. When you find a new failure in production, add that case *because* it failed, then keep it forever.
+
+## Match the metric to the task
+
+Not every task needs a language model to grade it. Reach for the cheapest thing that works:
+
+- **Deterministic checks** for anything with a right answer. Did it return valid JSON? Is the extracted date parseable? Does the SQL run? These are unit tests. They are fast, free, and they never disagree with themselves.
+- **Reference-based scoring** when you have a gold answer. Exact match, F1 on extracted fields, or embedding similarity for "close enough." Blunt, but objective.
+- **Rubric scoring** for open-ended output — summaries, explanations, chat. There is no single correct answer, so you score against explicit criteria: is it faithful to the source, is it complete, is it the right length, does it follow the format.
+
+Most real features are a mix. A support answer has a deterministic part (did it cite a real article) and a rubric part (was it actually helpful). Score them separately so a failure tells you *which* part broke.
+
+## LLM-as-judge, used carefully
+
+For the rubric parts, having a strong model grade the output scales in a way humans do not. It is genuinely useful — and it will lie to you in specific, predictable ways if you let it.
+
+Judges are biased toward longer answers, toward answers that look like their own writing, and toward whichever option is listed first. They rate on a curve unless you pin them down. The fixes are mechanical:
+
+**Give a rubric, not a feeling.** "Rate 1-10" produces noise. "Score 0 or 1 on each: cites a real source, answers the question asked, contains no claim absent from the context" produces something you can act on. Binary criteria beat a fuzzy scale.
+
+**Control for position.** When comparing two outputs, run each pair in both orders and only count agreements. If the judge flips its answer when you swap A and B, it was not judging — it was guessing.
+
+**Calibrate against humans.** Hand-label 30 examples yourself, then check whether the judge agrees with you. If it does not, your judge is measuring the wrong thing and every number downstream is fiction. This step is non-negotiable, and it is the one people skip.
+
+## Read the failures, not just the average
+
+A score of 0.82 tells you where you are, not what to fix. The signal is in the cases you fail. Bucket them: is it always the long documents? The ambiguous queries? The non-English inputs? Ten failures that share a cause are one bug and a clear next action. The average is for the dashboard; the failure buckets are for the work.
+
+## The honest limits
+
+Evals measure what you thought to measure. A test set built in August does not cover the way users break your system in November. Automated judges approximate human judgment; they do not replace it, and the gap is exactly where your worst bugs hide. Treat your eval suite as a living instrument — it decays, it needs new cases, it needs re-calibrating — not a certificate you earn once.
+
+But a decaying instrument you actually read beats no instrument and a good feeling. The goal is not a perfect number. It is to stop fooling yourself about whether the thing is getting better.

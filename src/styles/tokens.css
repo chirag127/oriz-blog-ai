@@ -1,0 +1,245 @@
+/*
+ * tokens.css — "latent" AI/ML blog identity ("Decoder", 2026-08).
+ *
+ * Deliberately DISTINCT from every sister oriz.in app and from the AI-blog
+ * cliché (no neon-purple gradient + glow, no near-black + acid-green). The
+ * look is a machine-learning LAB NOTEBOOK / PLOTTING SURFACE: cool graph-paper
+ * light, a deep printerly TEAL as the plotted-curve signal, and a single
+ * burnt-orange "hot weight" accent used only where a value is selected /
+ * peaks (the decoder's argmax, an attention peak).
+ *
+ *   Graph-paper light ground · deep teal trace accent · burnt-orange hot
+ *   accent · Fraunces display · Newsreader body · Spline Sans Mono tokens.
+ *
+ * Every --color-* alias below is kept so chrome/legal/Footer components
+ * (which read shell token names) compile unchanged. Theme modes:
+ *   :root                              → light lab-notebook (default)
+ *   @media (prefers-color-scheme:dark) → dark oscilloscope, UNLESS forced light
+ *   [data-theme="dark"]                → dark scope, always
+ *   [data-theme="light"]               → light, always
+ *   [data-theme="hc"]                  → pure black/white high contrast
+ */
+:root {
+  color-scheme: light;
+
+  /* ── light lab-notebook palette ────────────────────────────────────────
+     Cool graph-paper ground, printerly teal trace, burnt-orange hot weight.
+     Graphite ink on paper. All --color-* aliases inherit this. */
+  --brand: #0b6b5a; /* deep teal — the plotted trace: links, active, primary */
+  --brand-soft: #d9ece7; /* pale teal wash — hover, chips */
+  --hot: #d1470e; /* burnt-orange "hot weight" — selected token, attention peak */
+  --hot-soft: #fbe3d6;
+  --success: #0b6b5a;
+  --danger-color: #b3280d;
+
+  --paper: #f4f7f4; /* cool graph-paper ground (green-tinted, NOT cream) */
+  --paper-2: #ffffff; /* elevated plot panel / surface */
+  --surface: var(--paper-2);
+  --ink: #10161c; /* graphite ink */
+  --ink-mute: #566270; /* muted slate — secondary */
+  --rule: #d5ddd6; /* hairline */
+  --rule-strong: #b7c2b9; /* heavier masthead rule */
+  --grid: #e4ece5; /* faint graph-paper grid line */
+
+  /* canonical accent — everything routes through --accent. Back-compat aliases. */
+  --accent: var(--brand);
+  --accent-soft: var(--brand-soft);
+  --cobalt: var(--accent);
+  --brand-tint: var(--brand-soft);
+  --sage: var(--success);
+  --vermilion: var(--danger-color);
+  --highlighter: var(--hot);
+
+  /* content-vertical marker colours — instrument-panel hues. Thin rules /
+     kicker ticks only, never the page accent. Systems · Models · Retrieval ·
+     Evals (mapped from the desk verticals). */
+  --v-dev: #0b6b5a; /* systems — teal */
+  --v-finance: #2563a8; /* models — cobalt */
+  --v-culture: #7c4bd0; /* retrieval — restrained violet (one place only) */
+  --v-health: #b8580a; /* evals — amber */
+  --v-personal: #566270; /* notes — slate */
+
+  /* semantic passthroughs */
+  --color-bg: var(--paper);
+  --color-fg: var(--ink);
+  --color-accent: var(--brand);
+  --color-accent-fg: #ffffff;
+  --color-sage: var(--success);
+  --color-muted: var(--ink-mute);
+  --color-border: var(--rule);
+  --color-bg-soft: var(--paper-2);
+  --color-bg-muted: var(--paper-2);
+  --color-prose: var(--ink);
+  --color-fg-muted: var(--ink-mute);
+  --color-fg-soft: var(--ink-mute);
+
+  /* color alias layer (chrome components read these) */
+  --color-brand-indigo: var(--brand);
+  --color-brand-indigo-soft: var(--brand-soft);
+  --color-brand-success: var(--success);
+  --color-brand-danger: var(--danger-color);
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f4f7f4;
+  --color-neutral-100: #eaf0eb;
+  --color-neutral-200: #d5ddd6;
+  --color-neutral-300: #b7c2b9;
+  --color-neutral-500: #566270;
+  --color-neutral-700: #333d47;
+  --color-neutral-900: #10161c;
+  --color-neutral-1000: #000000;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-mute: var(--ink-mute);
+  --color-rule: var(--rule);
+
+  /* ── type ───────────────────────────────────────────────────────────
+     Font families declared ONCE in global.css @theme. Not duplicated here. */
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 48px;
+
+  /* spacing — 8 steps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* motion — 3 durations + 3 easings */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* breakpoints */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1440px;
+
+  /* radii + containers — near-zero radius (instrument, not app) */
+  --radius-card: 2px;
+  --radius-button: 2px;
+  --container-page: 1100px;
+}
+
+/* ── DARK — oscilloscope: system preference, unless user forced light ─── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    /* dark plotting scope — deep blue-graphite ground, phosphor-teal trace */
+    --brand: #38d9b0; /* brightened teal trace on dark */
+    --brand-soft: #12352d;
+    --hot: #ff8a4c; /* warm hot-weight, brightened */
+    --hot-soft: #3a2114;
+    --success: #38d9b0;
+    --danger-color: #ff6b5b;
+    --paper: #0d1117; /* blue-graphite scope ground */
+    --paper-2: #161c24; /* elevated plot panel */
+    --ink: #e6edf3;
+    --ink-mute: #8b97a5;
+    --rule: #232b35;
+    --rule-strong: #33404d;
+    --grid: #19212b;
+    --color-accent-fg: #06120e;
+    --v-dev: #38d9b0;
+    --v-finance: #5a9dff;
+    --v-culture: #b18cff;
+    --v-health: #ffab5c;
+    --v-personal: #8b97a5;
+    --color-neutral-0: #0d1117;
+    --color-neutral-50: #161c24;
+    --color-neutral-100: #1c242e;
+    --color-neutral-200: #232b35;
+    --color-neutral-300: #33404d;
+    --color-neutral-500: #8b97a5;
+    --color-neutral-700: #c3cdd8;
+    --color-neutral-900: #e6edf3;
+  }
+}
+
+/* ── DARK — explicit user override, wins over system ────────────────── */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --brand: #38d9b0;
+  --brand-soft: #12352d;
+  --hot: #ff8a4c;
+  --hot-soft: #3a2114;
+  --success: #38d9b0;
+  --danger-color: #ff6b5b;
+  --paper: #0d1117;
+  --paper-2: #161c24;
+  --ink: #e6edf3;
+  --ink-mute: #8b97a5;
+  --rule: #232b35;
+  --rule-strong: #33404d;
+  --grid: #19212b;
+  --color-accent-fg: #06120e;
+  --v-dev: #38d9b0;
+  --v-finance: #5a9dff;
+  --v-culture: #b18cff;
+  --v-health: #ffab5c;
+  --v-personal: #8b97a5;
+  --color-neutral-0: #0d1117;
+  --color-neutral-50: #161c24;
+  --color-neutral-100: #1c242e;
+  --color-neutral-200: #232b35;
+  --color-neutral-300: #33404d;
+  --color-neutral-500: #8b97a5;
+  --color-neutral-700: #c3cdd8;
+  --color-neutral-900: #e6edf3;
+}
+
+/* ── LIGHT — explicit user override, wins over system ───────────────── */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --brand: #0b6b5a;
+  --brand-soft: #d9ece7;
+  --hot: #d1470e;
+  --hot-soft: #fbe3d6;
+  --paper: #f4f7f4;
+  --paper-2: #ffffff;
+  --ink: #10161c;
+  --ink-mute: #566270;
+  --rule: #d5ddd6;
+  --rule-strong: #b7c2b9;
+  --grid: #e4ece5;
+  --color-accent-fg: #ffffff;
+}
+
+/* ── HIGH-CONTRAST — pure black/white, hard borders ─────────────────── */
+:root[data-theme='hc'] {
+  color-scheme: light;
+  --brand: #005c4c;
+  --brand-soft: #d9ece7;
+  --hot: #b3280d;
+  --hot-soft: #ffe3db;
+  --paper: #ffffff;
+  --paper-2: #ffffff;
+  --ink: #000000;
+  --ink-mute: #26262e;
+  --rule: #000000;
+  --rule-strong: #000000;
+  --grid: #d0d0d0;
+  --color-accent-fg: #ffffff;
+  --color-fg-soft: #26262e;
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #ffffff;
+  --color-neutral-200: #000000;
+  --color-neutral-500: #26262e;
+  --color-neutral-700: #000000;
+  --color-neutral-900: #000000;
+}

@@ -1,0 +1,63 @@
+---
+title: "MCP: giving language models real tools"
+description: "The Model Context Protocol turns an LLM from a text generator into something that can read your files, call your APIs, and act. Here is what it is and how to build a server that does not misbehave."
+pubDate: "2026-08-08"
+tags: ["MCP", "Agents", "Tools", "LLM", "Protocol"]
+category: "Systems"
+author: "Chirag Singhal"
+draft: false
+---
+
+A language model on its own is a very well-read person locked in a room with no phone. It can reason about your database, but it cannot query it. It can describe the fix for your bug, but it cannot open the file. Every useful assistant eventually has to reach outside the text box, and the question is how.
+
+For a while everyone hand-rolled that plumbing: bespoke function-calling glue per model, per app, per tool. The Model Context Protocol (MCP) is the attempt to standardize it — one protocol for exposing tools, data, and prompts to any model that speaks it. Write an MCP server once and every compatible client can use it.
+
+## The three primitives
+
+MCP servers expose three kinds of things, and keeping them straight is most of understanding the protocol:
+
+- **Tools** are actions the model can call — `search_tickets`, `run_query`, `create_file`. Model-controlled: the model decides when to invoke them.
+- **Resources** are data the model can read — a file, a table, a document. Application-controlled: the host app decides what to surface.
+- **Prompts** are reusable templates the user can invoke, often surfaced as slash commands.
+
+The distinction that trips people up is tools versus resources. A tool *does* something and may have side effects; a resource *is* something you read. "Delete the record" is a tool. "The record" is a resource. When in doubt, ask whether calling it twice should be safe — if not, it is a tool, and you should say so.
+
+## A minimal server
+
+The wire format is JSON-RPC, but you never write that by hand. The SDKs give you a decorator-shaped API:
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("tickets")
+
+@mcp.tool()
+def search_tickets(query: str, limit: int = 10) -> list[dict]:
+    """Search support tickets by free text. Returns id, subject, status."""
+    return db.search(query, limit=limit)
+
+if __name__ == "__main__":
+    mcp.run()
+```
+
+That docstring is not documentation — it is the interface the model reads to decide when and how to call the tool. Vague descriptions produce vague tool use. "Search stuff" gets called at random; "Search support tickets by free text, returns id, subject, and status" gets called when the user asks about tickets. Write tool descriptions the way you would write them for a competent colleague who has never seen your system.
+
+## Design tools for a model, not for yourself
+
+An API you designed for programmers is often the wrong shape for a model. A few things I have learned building servers:
+
+**Return structured data the model can actually use.** A wall of prose is hard to act on; a list of typed records is easy. But do not dump 500 rows either — the model has to read every token you return, and you are paying for it. Return what a person would need to answer the question, then a way to fetch more.
+
+**Make errors instructive.** When a tool fails, the model reads the error and decides what to do next. `"error: 400"` teaches it nothing. `"start_date must be before end_date; you passed start=2026-09-01, end=2026-08-01"` lets it fix the call and retry. Errors are a control channel, not just a log line.
+
+**Keep the surface small.** Twelve overlapping tools with fuzzy boundaries confuse the model into picking the wrong one. Five sharp tools with clear names it uses correctly. Fewer, better-named tools beats a complete-but-ambiguous catalog every time.
+
+## Guard the dangerous edges
+
+The moment a model can act, the blast radius stops being text. A server that can write files, run queries, or hit paid APIs needs the same discipline as any other privileged surface, plus one more: the caller is non-deterministic.
+
+Scope credentials to exactly what the tool needs — a read-only search tool gets a read-only connection. Validate every argument as if it came from an untrusted client, because effectively it did. For irreversible actions — deletes, sends, payments — put a confirmation step between intent and effect, either in the client's approval flow or as an explicit two-call pattern in the tool itself. Never rely on the model choosing not to do the dangerous thing; rely on it not being able to.
+
+## Why this matters
+
+MCP is not magic. It is a well-chosen boundary: the model reasons, tools act, and a typed protocol sits between them so neither has to know the other's internals. The interesting engineering is not the protocol — it is the tool design. A model is only as capable as the tools you hand it and only as safe as the edges you guard. Get those right and the locked room finally gets a phone.
